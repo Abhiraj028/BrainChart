@@ -4,31 +4,8 @@ import mongoose from "mongoose"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { AuthMiddleware } from "./middleware"
+import { ResponseCodes, ShareType, SignBodyType, ShareLinkType, ContentBodyType, JWTType, DelContentType } from "./utils"
 require("dotenv").config();
-
-interface SignBodyType {
-    username: string,
-    password: string
-}
-export interface AuthJWTPayload {
-    username: string
-}
-interface ContentBodyType{
-    link:string,
-    type:string,
-    title:string,
-    tags:string[],
-    userId: string
-}
-
-enum ResponseCodes {
-    Success = 200,        // OK
-    BadRequest = 400,     // Client-side input error
-    Unauthorized = 401,   // Authentication required
-    Forbidden = 403,      // User not allowed
-    NotFound = 404,       // Resource not found
-    InternalError = 500   // Server-side error
-}
 
 
 const app: Express = express()
@@ -74,7 +51,7 @@ app.post("/api/v1/signin",async (req: Request<{},{},SignBodyType>, res: Response
         if(!compare){
             return res.status(ResponseCodes.BadRequest).json({msg:"Username or Password entered is incorrect"});
         }
-        const token = jwt.sign({username:username} as AuthJWTPayload,process.env.JWT_KEY!,{expiresIn:"1h"});
+        const token = jwt.sign({id:check._id.toString()} as JWTType ,process.env.JWT_KEY!,{expiresIn:"1h"});
         
         res.status(ResponseCodes.Success).json({msg:"Successfully Signed in.",token});
     }catch(err){
@@ -83,29 +60,130 @@ app.post("/api/v1/signin",async (req: Request<{},{},SignBodyType>, res: Response
 
 });
 
-app.post("/api/v1/content",AuthMiddleware, (req:Request<{},{},ContentBodyType>, res:Response) =>{
-    const username = req.user!.username;
+app.post("/api/v1/content",AuthMiddleware, async (req:Request<{},{},ContentBodyType>, res:Response) =>{
+    const userId = req.user!.id;
     const link = req.body.link;
     const type = req.body.type;
     const title = req.body.title;
     
+    try{
+    if(!title){
+        return res.status(ResponseCodes.BadRequest).json({msg:"Please enter a title"});
+    }
+
+    await ContentModel.create({
+        link:link,
+        type:type,
+        title:title,
+        tags:[],
+        userId:userId
+    })
+
+    res.json({msg:"Content added successfully!"})
+    }catch(err: unknown){
+        if(err instanceof Error){
+            res.status(ResponseCodes.BadRequest).json({msg:"An error occured. Retry later."});
+            console.log(err);
+        }else{
+            res.status(ResponseCodes.InternalError).json({msg:"Fatal error occured."});
+            console.log(err);
+        }
+    }
 });
 
-app.get("/api/v1/content",(req: Request, res : Response) =>{
+app.get("/api/v1/content", AuthMiddleware , async (req: Request, res : Response) =>{
+    const userId = req.user!.id;
+    const data = await ContentModel.find({userId:userId}).populate("userId","username");
 
-})
+    if(data.length == 0){
+        return res.json({msg:"No content has been added. Begin your Second Brain!"});
+    }
+    
+    return res.status(ResponseCodes.Success).json(data);
 
-app.delete("/api/v1/content",(req: Request, res:Response) =>{
+});
 
-})
 
-app.post("/api/v1/brain/share",(req:Request, res:Response) =>{
+app.delete("/api/v1/content", AuthMiddleware, async (req: Request<{},{},DelContentType>, res:Response) =>{
+    const contentId = req.body.contentId;
+    if(!contentId){
+        return res.status(ResponseCodes.BadRequest).json({msg:"Specify the content to be deleted"})
+    }
+    try{
+        const delContent = await ContentModel.findOneAndDelete({_id:contentId,userId:req.user!.id});
+        console.log(delContent);
+        if(!delContent){
+            return res.status(ResponseCodes.BadRequest).json({msg:"Invalid contentId provided"});
+        }
+        res.status(ResponseCodes.Success).json({msg:"Specified content has been deleted"});
+    
+    }catch(err: unknown){
+        if(err instanceof Error){
+            res.status(ResponseCodes.BadRequest).json({msg:"An error occured. Retry later."});
+            console.log(err);
+        }else{
+            res.status(ResponseCodes.InternalError).json({msg:"Fatal error occured."});
+            console.log(err);
+        }
+    }
+    
+});
 
-})
 
-app.get("/api/v1/brain/:shareLink",(req:Request,res:Response) =>{
+app.post("/api/v1/brain/share", AuthMiddleware , async(req:Request<{},{},ShareType>, res:Response) =>{
+    const toggleShare = req.body.share;
+    const userId = req.user!.id;
+    try{
+        if(toggleShare){
+            const current = await LinkModel.findOne({userId});
+            if(!current){
+                const hash = await bcrypt.hash(userId,7);
+                await LinkModel.create({hash,userId});
+                return res.json({"Your shareable link has been created": hash});
+            }
+            return res.json({"Your shareable link already exists": current.hash})
+        }else{
+            await LinkModel.deleteOne({userId});
+            return res.json({msg:"Sharing turned off"});
+        }
+    }catch(err: unknown){
+        if(err instanceof Error){
+            res.status(ResponseCodes.BadRequest).json({msg:"An error occured. Retry later."});
+            console.log(err);
+        }else{
+            res.status(ResponseCodes.InternalError).json({msg:"Fatal error occured."});
+            console.log(err);
+        }
+    }
+});
 
-})
+
+
+app.get("/api/v1/brain/",async (req:Request<ShareLinkType>,res:Response) =>{
+    const hash = req.query.shareLink;
+    console.log(hash);
+    if(!hash){
+        return res.status(ResponseCodes.BadRequest).json({msg:"Enter a shareable link to continue"});
+    }
+    try{
+        const user = await LinkModel.findOne({hash});
+        if(!user){
+            return res.status(ResponseCodes.Forbidden).json({msg:"Invalid link entered"});
+        }
+        const userId = user.userId;
+
+        const content = await ContentModel.find({userId}).populate("userId","username");
+        return res.json(content);
+    }catch(err: unknown){
+        if(err instanceof Error){
+            res.status(ResponseCodes.BadRequest).json({msg:"An error occured. Retry later."});
+            console.log(err);
+        }else{
+            res.status(ResponseCodes.InternalError).json({msg:"Fatal error occured."});
+            console.log(err);
+        }
+    }
+});
 
 app.listen(3000, async () => {
     await mongoose.connect(process.env.mongo_uri!);

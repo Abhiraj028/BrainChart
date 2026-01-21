@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { JWT_KEY, ResponseCodes } from "./env";
 import jwt from "jsonwebtoken"
-import { AuthJWTPayload } from ".";
+import { JWTType, ResponseCodes } from "./utils";
+require("dotenv").config();
 
 export const AuthMiddleware = (req:Request,res:Response, next:NextFunction) =>{
     try{
@@ -11,10 +11,11 @@ export const AuthMiddleware = (req:Request,res:Response, next:NextFunction) =>{
         }
         const token = Auth.split(" ")[1]
         if(!token){
-            return res.status(ResponseCodes.BadRequest).json({msg:"Faulty Authorisation, retry later"});
+            return res.status(ResponseCodes.BadRequest).json({msg:"Token error. Try again later"});
         }
-        const decode = jwt.verify(token,JWT_KEY) as AuthJWTPayload;
-        req.user = decode;
+        const decode = jwt.verify(token,process.env.JWT_KEY!);
+        req.user = decode as JWTType;
+        console.log(req.user);
         next();
 
     }catch(err : unknown){
