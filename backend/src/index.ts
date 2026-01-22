@@ -36,6 +36,7 @@ app.post("/api/v1/signup", async (req : Request<{},{},SignBodyType>,res : Respon
     }
 });
 
+
 app.post("/api/v1/signin",async (req: Request<{},{},SignBodyType>, res: Response) =>{
     
     try{
@@ -59,6 +60,7 @@ app.post("/api/v1/signin",async (req: Request<{},{},SignBodyType>, res: Response
     }
 
 });
+
 
 app.post("/api/v1/content",AuthMiddleware, async (req:Request<{},{},ContentBodyType>, res:Response) =>{
     const userId = req.user!.id;
@@ -90,6 +92,7 @@ app.post("/api/v1/content",AuthMiddleware, async (req:Request<{},{},ContentBodyT
         }
     }
 });
+
 
 app.get("/api/v1/content", AuthMiddleware , async (req: Request, res : Response) =>{
     const userId = req.user!.id;
@@ -137,7 +140,7 @@ app.post("/api/v1/brain/share", AuthMiddleware , async(req:Request<{},{},ShareTy
         if(toggleShare){
             const current = await LinkModel.findOne({userId});
             if(!current){
-                const hash = await bcrypt.hash(userId,7);
+                const hash = await bcrypt.hash(userId,1);
                 await LinkModel.create({hash,userId});
                 return res.json({"Your shareable link has been created": hash});
             }
@@ -156,7 +159,6 @@ app.post("/api/v1/brain/share", AuthMiddleware , async(req:Request<{},{},ShareTy
         }
     }
 });
-
 
 
 app.get("/api/v1/brain/",async (req:Request<ShareLinkType>,res:Response) =>{
