@@ -13,7 +13,7 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/brain/?shareLink" element={<SharedBrain />} />
+        <Route path="/brain/:link" element={<SharedBrain />} />
       </Routes>
     </BrowserRouter>
   )

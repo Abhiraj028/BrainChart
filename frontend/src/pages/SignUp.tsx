@@ -41,6 +41,7 @@ export function SignUp(){
     return (
         <div className="min-h-screen w-full relative overflow-hidden bg-linear-to-br from-slate-950 via-purple-950 to-slate-900">
             <AnimatedBackground />
+            <div className="cursor-pointer right-4 top-4 absolute w-16 h-10 bg-linear-to-r from-purple-700 via-purple-900 to-purple-700 text-cyan-200 flex items-center justify-center rounded" onClick={() => navigate("/signin")}>Sign In</div>
             <div className="min-h-screen flex items-center justify-center">
                 <div className="w-full max-w-md bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl p-8 space-y-6">
                     <div className="space-y-2 text-center">

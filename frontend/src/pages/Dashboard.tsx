@@ -15,11 +15,18 @@ export function Dashboard() {
   const [share, setShare] = useState<boolean>(false);
   const firstRun = useRef(true);
 
+    if(!localStorage.getItem("token")){
+      alert("Invalid Access.Please sign in.");
+      window.location.href = "/signin";
+      return;
+    }
+
   useEffect(() => {
     if (firstRun.current) {
       firstRun.current = false;
       return; 
     }
+
     const shareContent = async () => {
       if(share){
         const datareturn = await axios.post(`http://localhost:3000/api/v1/brain/share`, {
@@ -38,7 +45,7 @@ export function Dashboard() {
         });
         console.log(datareturn?.data);
         alert("Your share link has been copied to the clipboard!");
-        await navigator.clipboard.writeText(`http://localhost:3000/api/v1/brain/?shareLink=${datareturn?.data.link}`);
+        await navigator.clipboard.writeText(`http://localhost:5173/brain/${datareturn?.data.link}`);
         
 
       }else{

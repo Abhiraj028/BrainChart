@@ -47,7 +47,7 @@ export function Card({title,link,type,_id}: CardProps){
                         {type == "twitter" && <TwitterIcon size="lg"/>}
                         {type == "article" && <ArticleIcon size="lg"/>}
                     </div>
-                    {title}
+                    <a href={link} target="_blank" className="text-blue-600 hover:underline">{title}</a>
                 </div>
                 <div className="flex items-center">
                     <div className="text-gray-500 pr-2  hover:opacity-70">
@@ -62,7 +62,7 @@ export function Card({title,link,type,_id}: CardProps){
             </div>
 
             <div className="pt-4">
-                {type == "youtube" && <iframe className="w-full h-64 rounded-md pt-8" src={link.replace("watch?v=","embed/")} title="YouTube video player" 
+                {type == "youtube" && <iframe className="w-full h-64 rounded-md pt-8 border border-gray-200" src={link.replace("watch?v=","embed/")} title="YouTube video player" 
                 frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                 referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>}
 
