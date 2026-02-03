@@ -16,6 +16,14 @@ const backend_url = import.meta.env.VITE_backend_url;
 export function Card({title,link,type,_id}: CardProps){
     const delId = `${backend_url}/content/${_id}`;
 
+    function getHostname(url: string): string {
+        try {
+            return new URL(url).hostname || '';
+        } catch (e) {
+            return '';
+        }
+    }
+
     async function deleteFn(_id: string){
         console.log(_id);
         await axios.delete(delId,{
@@ -39,7 +47,7 @@ export function Card({title,link,type,_id}: CardProps){
 
     return(
         <>
-        <div className="p-6 rounded-lg border shadow-xl border-purple-800/50 bg-slate-800/90 backdrop-blur-sm max-w-96 max-h-96 overflow-auto min-w-96 ">
+        <div className="p-6 rounded-lg border shadow-xl border-purple-800/50 bg-slate-800/90 backdrop-blur-sm max-w-96 max-h-72 overflow-auto min-w-96 min-h-72">
             <div className="flex justify-between items-center">
                 <div className="flex items-center text-xl font-medium">
                     <div className="text-purple-400  pr-4">
@@ -62,9 +70,19 @@ export function Card({title,link,type,_id}: CardProps){
             </div>
 
             <div className="pt-4">
-                {type == "youtube" && <iframe className="w-full h-64 rounded-md pt-8 border border-purple-800/50" src={link.replace("watch?v=","embed/")} title="YouTube video player" 
-                frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>}
+                {type == "youtube" && (
+                <div className="w-full aspect-video rounded-lg overflow-hidden border border-purple-800/50 bg-black/40 shadow-lg">
+                    <iframe
+                        className="w-full h-full"
+                        src={link.replace("watch?v=","embed/")}
+                        title="YouTube video player"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allowFullScreen
+                    ></iframe>
+                </div>
+                )}
 
                 {type == "twitter" && (
                 <iframe 
@@ -81,7 +99,7 @@ export function Card({title,link,type,_id}: CardProps){
                 <a 
                     href={link} 
                     target="_blank" 
-                    className="flex items-start gap-3 p-4 border border-purple-700/50 rounded-lg hover:border-purple-500 hover:bg-purple-900/30 transition group"
+                    className="flex items-start mt-4 gap-3 p-4 border border-purple-700/50 rounded-lg hover:border-purple-500 hover:bg-purple-900/30 transition group"
                 >
                     <div className="shrink-0 w-10 h-10 bg-purple-700/50 rounded-lg flex items-center justify-center">
                     <svg className="w-6 h-6 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,7 +107,7 @@ export function Card({title,link,type,_id}: CardProps){
                     </svg>
                     </div>
                     <div className="flex-1 min-w-0">
-                    <div className="text-xs text-gray-400 mb-1">{new URL(link).hostname}</div>
+                    <div className="text-xs text-gray-400 mb-1">{getHostname(link)}</div>
                     <div className="text-purple-300 group-hover:underline font-medium wrap-break-words">
                         Read Article →
                     </div>

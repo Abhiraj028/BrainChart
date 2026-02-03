@@ -28,6 +28,8 @@ export function CreateContentModal({open, onClose} : CreateContentModalProps){
             typeRef.current!.value = "twitter";
         }else if(linkId.includes("youtube.com")){
             typeRef.current!.value = "youtube";
+        }else{
+            typeRef.current!.value = "article";
         }
     } 
 

@@ -13,6 +13,7 @@ export function Dashboard() {
   const [open, setOpen] = useState(false);
   const {contents, setRefresh}: {contents: CardProps[], setRefresh: any} = useContent();
   const [share, setShare] = useState<boolean>(false);
+  const [filter, setFilter] = useState<string>("");
   const firstRun = useRef(true);
 
     if(!localStorage.getItem("token")){
@@ -57,17 +58,25 @@ export function Dashboard() {
 
   return (
     <div>
-      <Sidebar />
+      <Sidebar setFilter={setFilter} filter={filter} />
 
-      <div className='p-4 ml-72 min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-purple-900'>
+      <div className='pt-4 ml-16 sm:ml-20 md:ml-56 lg:ml-72 min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-purple-900'>
         <CreateContentModal open={open} onClose={() => {setOpen(false); setRefresh((prev: boolean) => !prev);}}/>
-        <div className='flex justify-end gap-4'>
+        <div className='flex justify-end gap-4 mr-4 mt-2'>
           <Button startIcon={<PlusIcon size="md"/>} variant="primary" size="md" text="Add Content" onClick={() => {setOpen(true)}} />
           <Button variant="secondary" size="md" text="Share Brain" onClick={() => setShare(prev => !prev)} startIcon={<ShareIcon size="md"/>}/>
         </div>
 
-        <div className='flex gap-4 ml-24 mt-6 flex-wrap'>
-          {contents.length > 0 ? contents.map(({title,link,type, _id}, index) => <Card _id={_id} key={index} title={title} link={link} type={type}/>) : 
+        <div className='flex gap-4 sm:ml-8 mt-6 pt-8 flex-wrap'>
+          {contents.length > 0 ? contents.map(({title,link,type, _id}, index) => {
+            if(filter === ""){
+              return <Card _id={_id} key={index} title={title} link={link} type={type}/>
+            }else{
+              if(type === filter){
+                return <Card _id={_id} key={index} title={title} link={link} type={type}/>
+              }
+            }
+          }) : 
           <div className='text-gray-400 text-lg ml-86 mt-24 '>No content added yet. Click on "Add Content" to get started!</div>}
         </div>
       </div>

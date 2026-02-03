@@ -33,7 +33,7 @@ export function SharedBrain() {
       <h1 className='text-2xl font-semibold mb-6 text-center'>Shared Brain by user: {contents.length > 0 ? contents[0].userId["username"] : "Unknown"}</h1>
       <div className='flex '>
         <Sidebar  />
-        <div className='flex gap-4 flex-wrap ml-72'>
+        <div className='flex gap-4 flex-wrap ml-16 sm:ml-20 md:ml-56 lg:ml-72'>
           {contents.length > 0 ? contents.map(({title, link, type, _id}, index) => 
             <Card _id={_id} key={index} title={title} link={link} type={type}/>) : 
             <div className='text-gray-500'>No content shared</div>}
